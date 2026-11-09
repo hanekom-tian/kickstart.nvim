@@ -12,9 +12,7 @@ local function map(mode, lhs, rhs, opts)
   local options = { noremap = true, silent = true }
 
   -- If the caller passed extra options, merge them in
-  if opts then
-    options = vim.tbl_extend('force', options, opts)
-  end
+  if opts then options = vim.tbl_extend('force', options, opts) end
 
   -- This is the actual Neovim API for defining keymaps in Lua
   vim.keymap.set(mode, lhs, rhs, options)
@@ -27,19 +25,13 @@ end
 -----------------------------------------------------------------------
 
 -- Normal mode, non-recursive (equivalent to :nnoremap)
-local function nnoremap(lhs, rhs, opts)
-  map('n', lhs, rhs, opts)
-end
+local function nnoremap(lhs, rhs, opts) map('n', lhs, rhs, opts) end
 
 -- Visual mode, non-recursive (equivalent to :vnoremap)
-local function vnoremap(lhs, rhs, opts)
-  map('v', lhs, rhs, opts)
-end
+local function vnoremap(lhs, rhs, opts) map('v', lhs, rhs, opts) end
 
 -- Visual + Select mode, non-recursive (equivalent to :xnoremap)
-local function xnoremap(lhs, rhs, opts)
-  map('x', lhs, rhs, opts)
-end
+local function xnoremap(lhs, rhs, opts) map('x', lhs, rhs, opts) end
 
 -----------------------------------------------------------------------
 -- RECURSIVE HELPER (like :nmap)

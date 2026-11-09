@@ -4,4 +4,8 @@ test.sh
 nvim
 
 spell/
-lazy-lock.json
+
+# Tracked in this fork to pin plugin versions - see :help vim.pack-lockfile
+# nvim-pack-lock.json
+
+.DS_Store
