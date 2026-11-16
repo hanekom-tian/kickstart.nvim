@@ -128,3 +128,35 @@ vnoremap('<leader>d', '"_d')
 -- nmap("j", "gj")        -- j becomes gj
 -- nmap("gj", "5j")       -- gj becomes 5j, and j chains into this too
 -----------------------------------------------------------------------
+
+-----------------------------------------------------------------------
+-- 5. Click a git change marker in the gutter → preview the change
+--
+--    Like clicking the coloured bars in an IDE: a left click in the
+--    sign/number column on a line with a gitsigns hunk moves there and
+--    opens the hunk preview (same as <leader>hp). Clicks anywhere else
+--    behave as normal. The pop-up closes when the cursor moves.
+-----------------------------------------------------------------------
+
+-- True if `lnum` is covered by one of the buffer's gitsigns hunks
+local function has_hunk(buf, lnum)
+  local ok, hunks = pcall(function() return require('gitsigns').get_hunks(buf) end)
+  if not ok or not hunks then return false end
+  for _, h in ipairs(hunks) do
+    -- Pure deletions have no added lines; their marker sits on the line above
+    local first = math.max(h.added.start, 1)
+    local last = h.added.start + math.max(h.added.count, 1) - 1
+    if lnum >= first and lnum <= math.max(last, first) then return true end
+  end
+  return false
+end
+
+nnoremap('<LeftMouse>', function()
+  local pos = vim.fn.getmousepos()
+  local info = pos.winid ~= 0 and vim.fn.getwininfo(pos.winid)[1]
+  local in_gutter = info and pos.wincol > 0 and pos.wincol <= info.textoff
+  if in_gutter and pos.line > 0 and has_hunk(vim.api.nvim_win_get_buf(pos.winid), pos.line) then
+    return '<LeftMouse><Cmd>lua require("gitsigns").preview_hunk()<CR>'
+  end
+  return '<LeftMouse>'
+end, { expr = true, desc = 'Click git sign to preview hunk' })
