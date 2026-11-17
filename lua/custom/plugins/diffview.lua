@@ -74,8 +74,8 @@ end
 
 local function review(base, branch) vim.cmd(('DiffviewOpen %s...%s'):format(base, branch)) end
 
-local function pick_branch(prompt, branches, on_choice)
-  vim.ui.select(branches, { prompt = prompt }, function(choice)
+local function pick_branch(prompt, branches, on_choice, format_item)
+  vim.ui.select(branches, { prompt = prompt, format_item = format_item }, function(choice)
     if choice then on_choice(choice) end
   end)
 end
@@ -95,7 +95,17 @@ vim.keymap.set('n', '<leader>gB', function()
   local branches = local_branches()
   if not branches then return vim.notify('Not in a git repository', vim.log.levels.WARN) end
   pick_branch('Review branch', branches, function(branch)
-    local others = vim.tbl_filter(function(b) return b ~= branch end, branches)
-    pick_branch(('Compare %s against'):format(branch), others, function(base) review(base, branch) end)
+    -- Guessed parent first, so the usual choice is one keypress away
+    local parent = guess_base(branch, branches)
+    local others = parent and { parent } or {}
+    for _, b in ipairs(branches) do
+      if b ~= branch and b ~= parent then table.insert(others, b) end
+    end
+    pick_branch(
+      ('Compare %s against'):format(branch),
+      others,
+      function(base) review(base, branch) end,
+      function(b) return b == parent and b .. ' (parent)' or b end
+    )
   end)
 end, { desc = 'Git: review [B]ranch against a chosen base' })
