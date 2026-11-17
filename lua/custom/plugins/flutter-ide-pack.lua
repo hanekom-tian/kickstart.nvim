@@ -41,6 +41,18 @@ require('dap').listeners.on_config['flutter-attach-args'] = function(config)
   return config
 end
 
+-- flutter-tools only creates its :Flutter* commands on the first BufEnter of a
+-- .dart file or pubspec.yaml, so they don't exist yet if you start elsewhere
+-- (e.g. Neo-tree after `nvim .`). Fire that startup by hand when needed.
+local function flutter_cmd(cmd)
+  if vim.fn.exists ':FlutterRun' ~= 2 then vim.api.nvim_exec_autocmds('BufEnter', { group = 'FlutterToolsGroup', pattern = 'pubspec.yaml' }) end
+  vim.cmd(cmd)
+end
+
+local function flutter(cmd)
+  return function() flutter_cmd(cmd) end
+end
+
 -- Attach to an app started elsewhere (terminal, another editor): pick the device first
 local function flutter_attach()
   vim.system({ 'flutter', 'devices', '--machine' }, { text = true }, function(res)
@@ -51,7 +63,7 @@ local function flutter_attach()
         prompt = 'Attach to app on device',
         format_item = function(d) return ('%s (%s)'):format(d.name, d.id) end,
       }, function(d)
-        if d then vim.cmd('FlutterAttach -d ' .. d.id) end
+        if d then flutter_cmd('FlutterAttach -d ' .. d.id) end
       end)
     end)
   end)
@@ -73,18 +85,18 @@ end
 
 -- Flutter keys (<leader>f is Format)
 require('which-key').add { { '<leader>F', group = '[F]lutter' } }
-vim.keymap.set('n', '<leader>Fr', '<cmd>FlutterRun<cr>', { desc = 'Flutter: Run' })
+vim.keymap.set('n', '<leader>Fr', flutter 'FlutterRun', { desc = 'Flutter: Run' })
 vim.keymap.set('n', '<leader>Fa', flutter_attach, { desc = 'Flutter: Attach to running app' })
-vim.keymap.set('n', '<leader>Fh', '<cmd>FlutterReload<cr>', { desc = 'Flutter: Hot reload' })
-vim.keymap.set('n', '<leader>FR', '<cmd>FlutterRestart<cr>', { desc = 'Flutter: Hot restart' })
-vim.keymap.set('n', '<leader>Fq', '<cmd>FlutterQuit<cr>', { desc = 'Flutter: Quit app' })
-vim.keymap.set('n', '<leader>Fd', '<cmd>FlutterDevices<cr>', { desc = 'Flutter: Devices' })
-vim.keymap.set('n', '<leader>Fe', '<cmd>FlutterEmulators<cr>', { desc = 'Flutter: Emulators' })
-vim.keymap.set('n', '<leader>Fi', '<cmd>FlutterInspectWidget<cr>', { desc = 'Flutter: Select widget on device' })
-vim.keymap.set('n', '<leader>Ft', '<cmd>FlutterOpenDevTools<cr>', { desc = 'Flutter: Open DevTools (widget tree, network)' })
-vim.keymap.set('n', '<leader>Fo', '<cmd>FlutterOutlineToggle<cr>', { desc = 'Flutter: Widget outline' })
-vim.keymap.set('n', '<leader>Fl', '<cmd>FlutterLogToggle<cr>', { desc = 'Flutter: Toggle log' })
-vim.keymap.set('n', '<leader>Fc', '<cmd>FlutterCommands<cr>', { desc = 'Flutter: All commands' })
+vim.keymap.set('n', '<leader>Fh', flutter 'FlutterReload', { desc = 'Flutter: Hot reload' })
+vim.keymap.set('n', '<leader>FR', flutter 'FlutterRestart', { desc = 'Flutter: Hot restart' })
+vim.keymap.set('n', '<leader>Fq', flutter 'FlutterQuit', { desc = 'Flutter: Quit app' })
+vim.keymap.set('n', '<leader>Fd', flutter 'FlutterDevices', { desc = 'Flutter: Devices' })
+vim.keymap.set('n', '<leader>Fe', flutter 'FlutterEmulators', { desc = 'Flutter: Emulators' })
+vim.keymap.set('n', '<leader>Fi', flutter 'FlutterInspectWidget', { desc = 'Flutter: Select widget on device' })
+vim.keymap.set('n', '<leader>Ft', flutter 'FlutterOpenDevTools', { desc = 'Flutter: Open DevTools (widget tree, network)' })
+vim.keymap.set('n', '<leader>Fo', flutter 'FlutterOutlineToggle', { desc = 'Flutter: Widget outline' })
+vim.keymap.set('n', '<leader>Fl', flutter 'FlutterLogToggle', { desc = 'Flutter: Toggle log' })
+vim.keymap.set('n', '<leader>Fc', flutter 'FlutterCommands', { desc = 'Flutter: All commands' })
 
 -- Problems panel (like IntelliJ’s “Problems” / “Inspection Results”)
 vim.pack.add { gh 'folke/trouble.nvim' }
