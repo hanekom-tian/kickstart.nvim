@@ -243,6 +243,7 @@ do
 
   require 'extensions.filetypes'
   require 'extensions.keymaps'
+  require 'extensions.autoreload'
 
   -- [[ Basic Autocommands ]]
   --  See `:help lua-guide-autocommands`
