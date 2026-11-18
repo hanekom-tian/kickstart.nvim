@@ -44,10 +44,25 @@ end
 -- flutter-tools only creates its :Flutter* commands on the first BufEnter of a
 -- .dart file or pubspec.yaml, so they don't exist yet if you start elsewhere
 -- (e.g. Neo-tree after `nvim .`). Fire that startup by hand when needed.
-local function flutter_cmd(cmd)
+local function start_flutter_tools()
   if vim.fn.exists ':FlutterRun' ~= 2 then vim.api.nvim_exec_autocmds('BufEnter', { group = 'FlutterToolsGroup', pattern = 'pubspec.yaml' }) end
+end
+
+local function flutter_cmd(cmd)
+  start_flutter_tools()
   vim.cmd(cmd)
 end
+
+-- In a Flutter/Dart project (a pubspec.yaml in the cwd or above), start right
+-- away so typed :Flutter* commands work too, also after `:cd` into one.
+local function start_if_flutter_project()
+  if vim.fs.root(vim.fn.getcwd(), 'pubspec.yaml') then start_flutter_tools() end
+end
+start_if_flutter_project()
+vim.api.nvim_create_autocmd('DirChanged', {
+  group = vim.api.nvim_create_augroup('flutter-tools-autostart', { clear = true }),
+  callback = start_if_flutter_project,
+})
 
 local function flutter(cmd)
   return function() flutter_cmd(cmd) end
