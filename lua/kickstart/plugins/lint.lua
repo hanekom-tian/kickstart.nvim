@@ -7,6 +7,8 @@ lint.linters_by_ft = {
   markdown = { 'rumdl' }, -- Make sure to install rumdl via package manager
 }
 
+lint.linters.rumdl.stream = 'stdout' -- rumdl writes JSON to stdout, not stderr
+
 -- To allow other plugins to add linters to require('lint').linters_by_ft,
 -- instead set linters_by_ft like this:
 -- lint.linters_by_ft = lint.linters_by_ft or {}
